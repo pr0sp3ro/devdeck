@@ -53,6 +53,82 @@ func TestConfigRoundTripAndInvalidInput(t *testing.T) {
 	}
 }
 
+func TestSaveConfigPreservesSymlink(t *testing.T) {
+	for _, relative := range []bool{false, true} {
+		name := "absolute target"
+
+		if relative {
+			name = "relative target"
+		}
+
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			targetDir := filepath.Join(root, "dotfiles")
+
+			if err := os.Mkdir(targetDir, 0700); err != nil {
+				t.Fatal(err)
+			}
+
+			target := filepath.Join(targetDir, "config.toml")
+
+			if err := os.WriteFile(target, []byte("sources = []\n"), 0600); err != nil {
+				t.Fatal(err)
+			}
+
+			link := filepath.Join(root, "config.toml")
+			linkTarget := target
+
+			if relative {
+				linkTarget = filepath.Join("dotfiles", "config.toml")
+			}
+
+			if err := os.Symlink(linkTarget, link); err != nil {
+				t.Fatal(err)
+			}
+
+			c := Config{Sources: []Source{{Path: root}}}
+
+			if err := saveConfig(link, c); err != nil {
+				t.Fatal(err)
+			}
+
+			actualTarget, err := os.Readlink(link)
+
+			if err != nil || actualTarget != linkTarget {
+				t.Fatalf("symlink changed: %q, %v", actualTarget, err)
+			}
+
+			loaded, err := loadConfig(target)
+
+			if err != nil || !reflect.DeepEqual(loaded.Sources, c.Sources) {
+				t.Fatalf("target not updated: %v, %v", loaded, err)
+			}
+		})
+	}
+}
+
+func TestSaveConfigRejectsDanglingSymlink(t *testing.T) {
+	root := t.TempDir()
+	link := filepath.Join(root, "config.toml")
+	target := filepath.Join(root, "missing.toml")
+
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := saveConfig(link, Config{}); err == nil {
+		t.Fatal("accepted a dangling configuration symlink")
+	}
+
+	if actual, err := os.Readlink(link); err != nil || actual != target {
+		t.Fatalf("dangling symlink changed: %q, %v", actual, err)
+	}
+
+	if _, err := os.Lstat(target); !os.IsNotExist(err) {
+		t.Fatalf("missing target was created: %v", err)
+	}
+}
+
 func TestDiscoveryDeduplicatesSymlinksAndKeepsExplicitSettings(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "demo")

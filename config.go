@@ -120,6 +120,18 @@ func saveConfig(path string, c Config) error {
 		return err
 	}
 
+	if _, err := os.Lstat(path); err == nil {
+		resolved, err := filepath.EvalSymlinks(path)
+
+		if err != nil {
+			return fmt.Errorf("resolve configuration path %s: %w", path, err)
+		}
+
+		path = resolved
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+
 	if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return err
 	}
