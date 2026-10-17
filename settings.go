@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -188,6 +189,14 @@ func editConfig(path string, c Config) error {
 		return err
 	}
 
+	resolved, err := filepath.EvalSymlinks(path)
+
+	if err != nil {
+		return fmt.Errorf("resolve configuration path %s: %w", path, err)
+	}
+
+	path = resolved
+
 	editor := os.Getenv("VISUAL")
 
 	if editor == "" {
@@ -206,7 +215,7 @@ func editConfig(path string, c Config) error {
 		return err
 	}
 
-	_, err := loadConfig(path)
+	_, err = loadConfig(path)
 	return err
 }
 

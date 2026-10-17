@@ -99,3 +99,52 @@ func TestConfigEditCanRepairInvalidConfiguration(t *testing.T) {
 		t.Fatal("invalid configuration was accepted after editing")
 	}
 }
+
+func TestConfigEditPreservesSymlinkWithReplacingEditor(t *testing.T) {
+	for _, args := range [][]string{{"config", "edit"}, {"project", "edit", "demo"}} {
+		t.Run(args[0], func(t *testing.T) {
+			root := t.TempDir()
+			t.Setenv("XDG_CONFIG_HOME", root)
+			t.Setenv("VISUAL", `sh -c 'printf "sources = []\n" > "$1.new" && mv "$1.new" "$1"' devdeck-test`)
+
+			path, err := configPath()
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			target := filepath.Join(root, "target.toml")
+			c := Config{Projects: map[string]Project{"demo": {Path: root}}}
+
+			if err := saveConfig(target, c); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+				t.Fatal(err)
+			}
+
+			linkTarget := filepath.Join("..", "target.toml")
+
+			if err := os.Symlink(linkTarget, path); err != nil {
+				t.Fatal(err)
+			}
+
+			if err := run(args); err != nil {
+				t.Fatal(err)
+			}
+
+			actual, err := os.Readlink(path)
+
+			if err != nil || actual != linkTarget {
+				t.Fatalf("editor replaced the symlink: %q, %v", actual, err)
+			}
+
+			data, err := os.ReadFile(target)
+
+			if err != nil || string(data) != "sources = []\n" {
+				t.Fatalf("editor did not update the target: %q, %v", data, err)
+			}
+		})
+	}
+}
