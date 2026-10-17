@@ -56,6 +56,14 @@ func run(args []string) error {
 		return err
 	}
 
+	if len(args) >= 2 && args[0] == "config" && args[1] == "edit" {
+		if len(args) != 2 {
+			return fmt.Errorf("usage: devdeck config edit")
+		}
+
+		return editConfig(path, Config{})
+	}
+
 	c, err := loadConfig(path)
 
 	if err != nil {
@@ -297,12 +305,6 @@ func run(args []string) error {
 
 			return saveConfig(path, c)
 
-		case "edit":
-			if len(args) != 2 {
-				return fmt.Errorf("usage: devdeck config edit")
-			}
-
-			return editConfig(path, c)
 		}
 	}
 
