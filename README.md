@@ -115,6 +115,7 @@ windows = [
     { name = "editor", command = "nvim" },
     { name = "terminal" },
     { name = "logs", command = "tail -f storage/logs/laravel.log" },
+    { name = "terminal", command = "git status; exec zsh -i" },
 ]
 
 [projects.devdeck]
