@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
 	"reflect"
 	"regexp"
 	"testing"
@@ -91,6 +93,12 @@ func TestCreationFailureOnlyCleansUpOwnedSession(t *testing.T) {
 
 func TestStartupRetainsFastCommandsAndSelectsFirstWindow(t *testing.T) {
 	dir := t.TempDir()
+	windowDir := filepath.Join(dir, "~cache")
+
+	if err := os.Mkdir(windowDir, 0700); err != nil {
+		t.Fatal(err)
+	}
+
 	var calls [][]string
 	client := tmux{run: func(args ...string) (string, error) {
 		calls = append(calls, args)
@@ -113,7 +121,10 @@ func TestStartupRetainsFastCommandsAndSelectsFirstWindow(t *testing.T) {
 
 		return "", nil
 	}}
-	p := Project{Path: dir, Windows: []Window{{Name: "output", Command: "printf done"}, {Name: "shell"}}}
+	p := Project{Path: dir, Windows: []Window{
+		{Name: "output", Command: "printf done", Directory: "~cache"},
+		{Name: "shell"},
+	}}
 
 	if _, err := client.ensure(p); err != nil {
 		t.Fatal(err)
@@ -133,6 +144,10 @@ func TestStartupRetainsFastCommandsAndSelectsFirstWindow(t *testing.T) {
 			}
 
 			commands = append(commands, call[7:])
+
+			if call[3] == "@7" && call[5] != windowDir {
+				t.Fatalf("relative window directory resolved outside the project: %s", call[5])
+			}
 		}
 	}
 

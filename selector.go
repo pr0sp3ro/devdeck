@@ -113,7 +113,7 @@ func selectProject(path string, c Config) error {
 		}
 
 		// Reload before opening to use edits made while fzf ran.
-		c, err = loadConfig(path)
+		c, err = readConfig(path)
 
 		if err != nil {
 			return err

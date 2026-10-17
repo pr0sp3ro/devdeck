@@ -103,7 +103,7 @@ func (t tmux) ensure(p Project) (string, error) {
 
 		if dir == "" {
 			dir = p.Path
-		} else if !filepath.IsAbs(dir) && !strings.HasPrefix(dir, "~") {
+		} else if !filepath.IsAbs(dir) && dir != "~" && !strings.HasPrefix(dir, "~/") {
 			dir = filepath.Join(p.Path, dir)
 		}
 

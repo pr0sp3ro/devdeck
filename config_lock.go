@@ -8,7 +8,7 @@ import (
 )
 
 // Keep the sidecar file in place so atomic config replacements share one lock.
-func lockConfig(path string) (*os.File, error) {
+func lockConfig(path string, mode int) (*os.File, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func lockConfig(path string) (*os.File, error) {
 	}
 
 	for {
-		err = syscall.Flock(int(file.Fd()), syscall.LOCK_EX)
+		err = syscall.Flock(int(file.Fd()), mode)
 
 		if err != syscall.EINTR {
 			break
@@ -51,4 +51,27 @@ func lockConfig(path string) (*os.File, error) {
 	}
 
 	return file, nil
+}
+
+func readConfig(path string) (Config, error) {
+	if _, err := os.Lstat(path); os.IsNotExist(err) {
+		// Preserve side-effect-free reads when neither config nor lock exists.
+		if _, err := os.Stat(path + ".lock"); os.IsNotExist(err) {
+			return Config{Projects: map[string]Project{}}, nil
+		} else if err != nil {
+			return Config{}, err
+		}
+	} else if err != nil {
+		return Config{}, err
+	}
+
+	lock, err := lockConfig(path, syscall.LOCK_SH)
+
+	if err != nil {
+		return Config{}, err
+	}
+
+	defer lock.Close()
+
+	return loadConfig(path)
 }

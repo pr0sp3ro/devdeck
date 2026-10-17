@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"syscall"
 
 	"github.com/pelletier/go-toml/v2"
 )
@@ -56,9 +57,9 @@ func run(args []string) error {
 		return err
 	}
 
-	if len(args) >= 2 {
-		writesConfig := false
+	writesConfig := false
 
+	if len(args) >= 2 {
 		switch args[0] {
 		case "source", "favorite":
 			writesConfig = len(args) == 3 && (args[1] == "add" || args[1] == "remove")
@@ -71,7 +72,7 @@ func run(args []string) error {
 		}
 
 		if writesConfig {
-			lock, err := lockConfig(path)
+			lock, err := lockConfig(path, syscall.LOCK_EX)
 
 			if err != nil {
 				return err
@@ -89,7 +90,13 @@ func run(args []string) error {
 		return editConfig(path, Config{})
 	}
 
-	c, err := loadConfig(path)
+	var c Config
+
+	if writesConfig {
+		c, err = loadConfig(path)
+	} else {
+		c, err = readConfig(path)
+	}
 
 	if err != nil {
 		return err

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/pelletier/go-toml/v2"
 )
@@ -220,7 +221,7 @@ func editConfig(path string, c Config) error {
 }
 
 func toggleFavorite(path, projectPath string) (Config, error) {
-	lock, err := lockConfig(path)
+	lock, err := lockConfig(path, syscall.LOCK_EX)
 
 	if err != nil {
 		return Config{}, err

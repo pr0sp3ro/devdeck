@@ -287,7 +287,7 @@ func resolveProject(c Config, value string) (Project, error) {
 		return Project{}, err
 	}
 
-	if value == "." || value == "~" || strings.ContainsRune(value, filepath.Separator) {
+	if value == "." || value == ".." || value == "~" || strings.ContainsRune(value, filepath.Separator) {
 		path, err := canonicalPath(value)
 
 		if err != nil {

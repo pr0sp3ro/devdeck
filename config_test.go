@@ -7,6 +7,20 @@ import (
 	"testing"
 )
 
+func TestResolveProjectAcceptsParentDirectory(t *testing.T) {
+	want, err := canonicalPath("..")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	p, err := resolveProject(Config{}, "..")
+
+	if err != nil || p.Path != want {
+		t.Fatalf("parent directory was not resolved: %v, %v", p, err)
+	}
+}
+
 func TestConfigRoundTripAndInvalidInput(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "devdeck", "config.toml")
 	c, err := loadConfig(path)

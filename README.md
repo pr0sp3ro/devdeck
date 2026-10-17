@@ -190,7 +190,7 @@ devdeck project edit example
 
 Configuration-changing CLI commands validate the current file before writing. Writes use an atomic replacement and may reformat TOML and remove comments. Unknown fields and invalid configuration cause an error without overwriting the file. Use `devdeck config edit` to open and repair invalid configuration. This command validates the file after the editor exits.
 
-DevDeck serializes configuration changes using a `config.toml.lock` file next to the configuration's actual target, including when the configuration is a symlink. Parallel commands wait for the current update to finish before reading and changing settings. `Ctrl-F` locks only while updating a favorite. `config edit` and `project edit` hold the lock until the editor exits. The lock file remains on disk, but the lock is released automatically when the process exits. Editors launched directly outside DevDeck do not participate in locking.
+DevDeck serializes configuration changes using a `config.toml.lock` file next to the configuration's actual target, including when the configuration is a symlink. Parallel commands wait for the current update to finish before reading and changing settings. Read-only commands and the picker use shared locks while loading configuration, so they also wait until an editor launched by DevDeck exits. `Ctrl-F` locks only while updating a favorite. `config edit` and `project edit` hold the lock until the editor exits. The lock file remains on disk, but the lock is released automatically when the process exits. Editors launched directly outside DevDeck do not participate in locking.
 
 ## Command reference
 
