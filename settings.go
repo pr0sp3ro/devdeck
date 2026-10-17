@@ -106,6 +106,18 @@ func setConfigValue(c *Config, key, value string) error {
 				return err
 			}
 
+			for name, existing := range c.Projects {
+				if name == parts[1] {
+					continue
+				}
+
+				resolved, err := canonicalPath(existing.Path)
+
+				if err == nil && resolved == path {
+					return fmt.Errorf("path already configured as %q", name)
+				}
+			}
+
 			p.Path = path
 
 		case "favorite":
