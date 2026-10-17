@@ -86,6 +86,8 @@ func (c Config) validate() error {
 		}
 	}
 
+	paths := map[string]string{}
+
 	for name, p := range c.Projects {
 		if !validName.MatchString(name) {
 			return fmt.Errorf("invalid project name %q: use letters, numbers, underscores or hyphens", name)
@@ -93,6 +95,16 @@ func (c Config) validate() error {
 
 		if strings.TrimSpace(p.Path) == "" {
 			return fmt.Errorf("project %s has an empty path", name)
+		}
+
+		path, err := canonicalPath(p.Path)
+
+		if err == nil {
+			if existing, ok := paths[path]; ok {
+				return fmt.Errorf("projects %q and %q use the same directory: %s", existing, name, path)
+			}
+
+			paths[path] = name
 		}
 
 		for _, w := range p.Windows {
@@ -162,6 +174,10 @@ func saveConfig(path string, c Config) error {
 }
 
 func expandPath(path string) (string, error) {
+	if strings.TrimSpace(path) == "" {
+		return "", fmt.Errorf("path cannot be empty")
+	}
+
 	if path == "~" || strings.HasPrefix(path, "~/") {
 		home, err := os.UserHomeDir()
 

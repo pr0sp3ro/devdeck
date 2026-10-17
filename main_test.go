@@ -5,7 +5,107 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/pelletier/go-toml/v2"
 )
+
+func TestCommandsRejectEmptyPathsWithoutChangingConfig(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", root)
+	path, err := configPath()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := Config{
+		Sources:  []Source{{Path: root}},
+		Projects: map[string]Project{"demo": {Path: root}},
+	}
+
+	if err := saveConfig(path, c); err != nil {
+		t.Fatal(err)
+	}
+
+	before, err := os.ReadFile(path)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, value := range []string{"", "  "} {
+		for _, args := range [][]string{
+			{"source", "add", value},
+			{"source", "remove", value},
+			{"project", "add", "other", value},
+			{"config", "set", "projects.demo.path", value},
+			{"config", "set", "sources.0.path", value},
+		} {
+			if err := run(args); err == nil {
+				t.Fatalf("accepted an empty path: %q", args)
+			}
+
+			after, err := os.ReadFile(path)
+
+			if err != nil || !bytes.Equal(before, after) {
+				t.Fatalf("rejected command changed configuration: %q, %v", args, err)
+			}
+		}
+	}
+}
+
+func TestConfigEditRejectsDuplicateCanonicalPaths(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", root)
+	t.Setenv("VISUAL", `sh -c 'cat "$DEVDECK_TEST_EDIT_CONTENT" > "$1"' devdeck-test`)
+	path, err := configPath()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	projectPath := t.TempDir()
+	alias := filepath.Join(root, "alias")
+
+	if err := os.Symlink(projectPath, alias); err != nil {
+		t.Fatal(err)
+	}
+
+	content := filepath.Join(root, "edited.toml")
+	t.Setenv("DEVDECK_TEST_EDIT_CONTENT", content)
+
+	for _, duplicate := range []string{projectPath, alias} {
+		if err := saveConfig(path, Config{}); err != nil {
+			t.Fatal(err)
+		}
+
+		c := Config{Projects: map[string]Project{
+			"alpha": {Path: projectPath},
+			"beta":  {Path: duplicate},
+		}}
+		data, err := toml.Marshal(c)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := os.WriteFile(content, data, 0600); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := saveConfig(path, c); err == nil {
+			t.Fatal("save accepted duplicate canonical paths")
+		}
+
+		if err := run([]string{"config", "edit"}); err == nil {
+			t.Fatal("editor validation accepted duplicate canonical paths")
+		}
+
+		if _, err := loadConfig(path); err == nil {
+			t.Fatal("load accepted duplicate canonical paths")
+		}
+	}
+}
 
 func TestConfigSetRejectsDuplicateProjectPaths(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())

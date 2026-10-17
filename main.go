@@ -234,14 +234,6 @@ func run(args []string) error {
 				return err
 			}
 
-			for key, p := range c.Projects {
-				existing, err := canonicalPath(p.Path)
-
-				if err == nil && existing == target {
-					return fmt.Errorf("path already configured as %q", key)
-				}
-			}
-
 			c.Projects[name] = Project{Path: target}
 			return saveConfig(path, c)
 

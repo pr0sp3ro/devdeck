@@ -143,7 +143,7 @@ The number of windows comes from the list. An empty or omitted list opens one te
 
 Paths support `~` and `~/...`. Use absolute project and source paths in manually edited configuration. CLI commands save canonical absolute paths. Relative project or source paths in a manually edited file resolve against the directory from which DevDeck is invoked. Environment variables in path fields are not expanded.
 
-Projects discovered from sources use their directory names and open one terminal window unless the same canonical path has an explicit project configuration. Explicit settings take precedence for that path. Multiple configured project identifiers pointing to the same canonical directory are rejected during discovery.
+Projects discovered from sources use their directory names and open one terminal window unless the same canonical path has an explicit project configuration. Explicit settings take precedence for that path. Multiple configured project identifiers pointing to the same canonical directory are rejected when configuration is loaded, saved, or validated after editing.
 
 Unavailable sources and projects are skipped with warnings in the picker and project listing. Opening an unavailable project fails with an error.
 
