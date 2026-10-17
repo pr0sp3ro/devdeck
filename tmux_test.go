@@ -159,3 +159,24 @@ func TestStartupRetainsFastCommandsAndSelectsFirstWindow(t *testing.T) {
 		t.Fatal("first window not selected")
 	}
 }
+
+func TestTmuxRejectsUnsafeWindowSettingsBeforeCreation(t *testing.T) {
+	for _, window := range []Window{
+		{Name: "editor;"},
+		{Name: "editor[1]"},
+		{Name: "editor\nname"},
+		{Name: "editor", Directory: "bad;"},
+	} {
+		client := tmux{run: func(args ...string) (string, error) {
+			if args[0] != "has-session" {
+				t.Fatalf("invalid settings reached tmux initialization: %v", args)
+			}
+
+			return "", errors.New("absent")
+		}}
+
+		if _, err := client.ensure(Project{Path: t.TempDir(), Windows: []Window{window}}); err == nil {
+			t.Fatalf("accepted unsafe settings: %v", window)
+		}
+	}
+}

@@ -319,3 +319,53 @@ func TestUnreadableSourceDoesNotBlockOtherProjects(t *testing.T) {
 		}
 	}
 }
+
+func TestConfigRestrictsNamesAndPathsButPreservesCommands(t *testing.T) {
+	root := t.TempDir()
+
+	for _, value := range []string{"bad;", "bad'name", "bad[1]", "bad$(pwd)", "bad\nname", "badą"} {
+		for _, c := range []Config{
+			{Sources: []Source{{Path: value}}},
+			{Projects: map[string]Project{"demo": {Path: value}}},
+			{Projects: map[string]Project{"demo": {Path: root, Windows: []Window{{Name: value}}}}},
+			{Projects: map[string]Project{"demo": {Path: root, Windows: []Window{{Name: "terminal", Directory: value}}}}},
+		} {
+			if err := c.validate(); err == nil {
+				t.Fatalf("accepted unsupported characters: %q", value)
+			}
+		}
+	}
+
+	c := Config{Projects: map[string]Project{
+		"demo": {
+			Path: root,
+			Windows: []Window{{
+				Name:      "terminal 1.0-test_2",
+				Directory: "~/some directory/~cache",
+				Command:   "git status; exec zsh -i",
+			}},
+		},
+	}}
+
+	if err := c.validate(); err != nil {
+		t.Fatalf("rejected supported settings: %v", err)
+	}
+}
+
+func TestCanonicalPathRejectsUnsupportedSymlinkTarget(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "bad;")
+	alias := filepath.Join(root, "alias")
+
+	if err := os.Mkdir(target, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Symlink(target, alias); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := canonicalPath(alias); err == nil {
+		t.Fatal("accepted a symlink target with unsupported characters")
+	}
+}

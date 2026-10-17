@@ -35,6 +35,8 @@ type Config struct {
 }
 
 var validName = regexp.MustCompile(`^[A-Za-z0-9_-]+$`)
+var validWindowName = regexp.MustCompile(`^[A-Za-z0-9 _.-]+$`)
+var validPath = regexp.MustCompile(`^[A-Za-z0-9 _./~-]+$`)
 
 func configPath() (string, error) {
 	dir := os.Getenv("XDG_CONFIG_HOME")
@@ -84,6 +86,10 @@ func (c Config) validate() error {
 		if strings.TrimSpace(s.Path) == "" {
 			return fmt.Errorf("source path cannot be empty")
 		}
+
+		if _, err := expandPath(s.Path); err != nil {
+			return fmt.Errorf("source: %w", err)
+		}
 	}
 
 	paths := map[string]string{}
@@ -95,6 +101,10 @@ func (c Config) validate() error {
 
 		if strings.TrimSpace(p.Path) == "" {
 			return fmt.Errorf("project %s has an empty path", name)
+		}
+
+		if _, err := expandPath(p.Path); err != nil {
+			return fmt.Errorf("project %s: %w", name, err)
 		}
 
 		path, err := canonicalPath(p.Path)
@@ -112,8 +122,14 @@ func (c Config) validate() error {
 				return fmt.Errorf("project %s has a NUL character in its window settings", name)
 			}
 
-			if strings.TrimSpace(w.Name) == "" || strings.ContainsAny(w.Name, "\n\r") {
-				return fmt.Errorf("project %s has an invalid window name", name)
+			if strings.TrimSpace(w.Name) == "" || !validWindowName.MatchString(w.Name) {
+				return fmt.Errorf("project %s: invalid window name %q, use ASCII letters, digits, spaces, _, - or .", name, w.Name)
+			}
+
+			if w.Directory != "" {
+				if _, err := expandPath(w.Directory); err != nil {
+					return fmt.Errorf("project %s, window %s: %w", name, w.Name, err)
+				}
 			}
 		}
 	}
@@ -178,6 +194,10 @@ func expandPath(path string) (string, error) {
 		return "", fmt.Errorf("path cannot be empty")
 	}
 
+	if !validPath.MatchString(path) {
+		return "", fmt.Errorf("invalid path %q: use ASCII letters, digits, spaces, _, -, ., / or ~", path)
+	}
+
 	if path == "~" || strings.HasPrefix(path, "~/") {
 		home, err := os.UserHomeDir()
 
@@ -202,6 +222,10 @@ func canonicalPath(path string) (string, error) {
 
 	if err != nil {
 		return "", err
+	}
+
+	if !validPath.MatchString(path) {
+		return "", fmt.Errorf("invalid resolved path %q: use ASCII letters, digits, spaces, _, -, ., / or ~", path)
 	}
 
 	info, err := os.Stat(path)

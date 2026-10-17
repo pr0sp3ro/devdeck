@@ -76,6 +76,10 @@ func (t tmux) sessions() (map[string]bool, error) {
 }
 
 func (t tmux) ensure(p Project) (string, error) {
+	if _, err := expandPath(p.Path); err != nil {
+		return "", err
+	}
+
 	name := sessionName(p.Path)
 
 	if _, err := t.run("has-session", "-t", "="+name); err == nil {
@@ -95,8 +99,8 @@ func (t tmux) ensure(p Project) (string, error) {
 			return "", fmt.Errorf("window settings contain a NUL character")
 		}
 
-		if strings.TrimSpace(w.Name) == "" {
-			return "", fmt.Errorf("window name cannot be empty")
+		if strings.TrimSpace(w.Name) == "" || !validWindowName.MatchString(w.Name) {
+			return "", fmt.Errorf("invalid window name %q: use ASCII letters, digits, spaces, _, - or .", w.Name)
 		}
 
 		dir := w.Directory

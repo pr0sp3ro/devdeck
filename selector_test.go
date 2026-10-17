@@ -8,6 +8,7 @@ import (
 )
 
 func TestPickerReloadsSettingsBeforeOpening(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	root := t.TempDir()
 	configFile := filepath.Join(root, "config.toml")
 	updatedFile := filepath.Join(root, "updated.toml")

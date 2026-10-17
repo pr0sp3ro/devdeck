@@ -1,37 +1,80 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
 	"syscall"
 )
 
-// Keep the sidecar file in place so atomic config replacements share one lock.
-func lockConfig(path string, mode int) (*os.File, error) {
-	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
-		return nil, err
+// Resolve existing ancestors too, keeping the lock identity stable before creation.
+func configLockPath(path string) (string, error) {
+	path, err := filepath.Abs(path)
+
+	if err != nil {
+		return "", err
 	}
 
-	if _, err := os.Lstat(path); err == nil {
+	var missing []string
+
+	for {
 		resolved, err := filepath.EvalSymlinks(path)
 
-		if err != nil {
-			return nil, fmt.Errorf("resolve configuration path %s: %w", path, err)
+		if err == nil {
+			path = resolved
+			break
 		}
 
-		path = resolved
-	} else if !os.IsNotExist(err) {
-		return nil, err
+		if !os.IsNotExist(err) {
+			return "", err
+		}
+
+		if _, statErr := os.Lstat(path); !os.IsNotExist(statErr) {
+			return "", fmt.Errorf("resolve configuration path %s: %w", path, err)
+		}
+
+		missing = append(missing, filepath.Base(path))
+		path = filepath.Dir(path)
 	}
 
-	dir, err := filepath.EvalSymlinks(filepath.Dir(path))
+	for i := len(missing) - 1; i >= 0; i-- {
+		path = filepath.Join(path, missing[i])
+	}
+
+	state := os.Getenv("XDG_STATE_HOME")
+
+	if state == "" {
+		home, err := os.UserHomeDir()
+
+		if err != nil {
+			return "", err
+		}
+
+		state = filepath.Join(home, ".local", "state")
+	}
+
+	if !filepath.IsAbs(state) {
+		return "", fmt.Errorf("XDG_STATE_HOME must be an absolute path")
+	}
+
+	hash := sha256.Sum256([]byte(path))
+	return filepath.Join(state, "devdeck", "locks", fmt.Sprintf("%x.lock", hash)), nil
+}
+
+// Keep lock files in place so atomic config replacements share one lock.
+func lockConfig(path string, mode int) (*os.File, error) {
+	lockPath, err := configLockPath(path)
 
 	if err != nil {
 		return nil, err
 	}
 
-	file, err := os.OpenFile(filepath.Join(dir, filepath.Base(path))+".lock", os.O_CREATE|os.O_RDWR, 0600)
+	if err := os.MkdirAll(filepath.Dir(lockPath), 0700); err != nil {
+		return nil, err
+	}
+
+	file, err := os.OpenFile(lockPath, os.O_CREATE|os.O_RDWR, 0600)
 
 	if err != nil {
 		return nil, err
@@ -54,17 +97,6 @@ func lockConfig(path string, mode int) (*os.File, error) {
 }
 
 func readConfig(path string) (Config, error) {
-	if _, err := os.Lstat(path); os.IsNotExist(err) {
-		// Preserve side-effect-free reads when neither config nor lock exists.
-		if _, err := os.Stat(path + ".lock"); os.IsNotExist(err) {
-			return Config{Projects: map[string]Project{}}, nil
-		} else if err != nil {
-			return Config{}, err
-		}
-	} else if err != nil {
-		return Config{}, err
-	}
-
 	lock, err := lockConfig(path, syscall.LOCK_SH)
 
 	if err != nil {

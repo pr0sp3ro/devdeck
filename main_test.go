@@ -10,6 +10,7 @@ import (
 )
 
 func TestCommandsRejectEmptyPathsWithoutChangingConfig(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	root := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", root)
 	path, err := configPath()
@@ -55,6 +56,7 @@ func TestCommandsRejectEmptyPathsWithoutChangingConfig(t *testing.T) {
 }
 
 func TestConfigEditRejectsDuplicateCanonicalPaths(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	root := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", root)
 	t.Setenv("VISUAL", `sh -c 'cat "$DEVDECK_TEST_EDIT_CONTENT" > "$1"' devdeck-test`)
@@ -108,6 +110,7 @@ func TestConfigEditRejectsDuplicateCanonicalPaths(t *testing.T) {
 }
 
 func TestConfigSetRejectsDuplicateProjectPaths(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
 	alphaPath := t.TempDir()
 	betaPath := t.TempDir()
@@ -168,6 +171,7 @@ func TestConfigSetRejectsDuplicateProjectPaths(t *testing.T) {
 }
 
 func TestConfigEditCanRepairInvalidConfiguration(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
 	t.Setenv("VISUAL", `sh -c 'printf "sources = []\n" > "$1"' devdeck-test`)
 
@@ -201,6 +205,7 @@ func TestConfigEditCanRepairInvalidConfiguration(t *testing.T) {
 }
 
 func TestConfigEditPreservesSymlinkWithReplacingEditor(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	for _, args := range [][]string{{"config", "edit"}, {"project", "edit", "demo"}} {
 		t.Run(args[0], func(t *testing.T) {
 			root := t.TempDir()
