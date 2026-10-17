@@ -242,7 +242,8 @@ func projects(c Config) ([]Project, error) {
 		entries, err := os.ReadDir(root)
 
 		if err != nil {
-			return nil, err
+			fmt.Fprintf(os.Stderr, "Warning: source %s: %v\n", source.Path, err)
+			continue
 		}
 
 		for _, entry := range entries {

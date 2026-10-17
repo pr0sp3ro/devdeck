@@ -252,3 +252,56 @@ func TestFavoriteNormalizesDiscoveredNamesWithoutOverwritingProjects(t *testing.
 		})
 	}
 }
+
+func TestUnreadableSourceDoesNotBlockOtherProjects(t *testing.T) {
+	unreadable := t.TempDir()
+
+	if err := os.Chmod(unreadable, 0111); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Cleanup(func() {
+		if err := os.Chmod(unreadable, 0700); err != nil {
+			t.Error(err)
+		}
+	})
+
+	if _, err := os.ReadDir(unreadable); err == nil {
+		t.Skip("current user can read directories without read permission")
+	} else if !os.IsPermission(err) {
+		t.Fatal(err)
+	}
+
+	root := t.TempDir()
+	discovered := filepath.Join(root, "discovered")
+
+	if err := os.Mkdir(discovered, 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	configured := t.TempDir()
+	direct := t.TempDir()
+	c := Config{
+		Sources: []Source{{Path: unreadable}, {Path: root}},
+		Projects: map[string]Project{
+			"configured": {Path: configured},
+		},
+	}
+	list, err := projects(c)
+
+	if err != nil || len(list) != 2 {
+		t.Fatalf("unreadable source blocked discovery: %v, %v", list, err)
+	}
+
+	for _, selection := range []struct{ value, path string }{
+		{"configured", configured},
+		{"discovered", discovered},
+		{direct, direct},
+	} {
+		p, err := resolveProject(c, selection.value)
+
+		if err != nil || p.Path != selection.path {
+			t.Fatalf("unreadable source blocked %q: %v, %v", selection.value, p, err)
+		}
+	}
+}
