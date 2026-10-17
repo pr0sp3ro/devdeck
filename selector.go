@@ -102,30 +102,30 @@ func selectProject(path string, c Config) error {
 
 		p := list[id]
 
-		// Reload before opening or updating a project to use edits made while fzf ran.
+		if key == "ctrl-f" {
+			c, err = toggleFavorite(path, p.Path)
+
+			if err != nil {
+				return err
+			}
+
+			continue
+		}
+
+		// Reload before opening to use edits made while fzf ran.
 		c, err = loadConfig(path)
 
 		if err != nil {
 			return err
 		}
 
-		if key != "ctrl-f" {
-			p, err = resolveProject(c, p.Path)
+		p, err = resolveProject(c, p.Path)
 
-			if err != nil {
-				return err
-			}
-
-			return openProject(p)
-		}
-
-		if err = favorite(&c, p, !p.Favorite); err != nil {
+		if err != nil {
 			return err
 		}
 
-		if err = saveConfig(path, c); err != nil {
-			return err
-		}
+		return openProject(p)
 	}
 }
 

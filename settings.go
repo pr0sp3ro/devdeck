@@ -210,6 +210,34 @@ func editConfig(path string, c Config) error {
 	return err
 }
 
+func toggleFavorite(path, projectPath string) (Config, error) {
+	lock, err := lockConfig(path)
+
+	if err != nil {
+		return Config{}, err
+	}
+
+	defer lock.Close()
+
+	c, err := loadConfig(path)
+
+	if err != nil {
+		return c, err
+	}
+
+	p, err := resolveProject(c, projectPath)
+
+	if err != nil {
+		return c, err
+	}
+
+	if err := favorite(&c, p, !p.Favorite); err != nil {
+		return c, err
+	}
+
+	return c, saveConfig(path, c)
+}
+
 func favorite(c *Config, p Project, enabled bool) error {
 	name := strings.Map(func(r rune) rune {
 		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '_' || r == '-' {

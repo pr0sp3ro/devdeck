@@ -56,6 +56,31 @@ func run(args []string) error {
 		return err
 	}
 
+	if len(args) >= 2 {
+		writesConfig := false
+
+		switch args[0] {
+		case "source", "favorite":
+			writesConfig = len(args) == 3 && (args[1] == "add" || args[1] == "remove")
+
+		case "project":
+			writesConfig = (args[1] == "add" && len(args) == 4) || (args[1] == "edit" && len(args) == 3)
+
+		case "config":
+			writesConfig = (args[1] == "set" && len(args) == 4) || (args[1] == "edit" && len(args) == 2)
+		}
+
+		if writesConfig {
+			lock, err := lockConfig(path)
+
+			if err != nil {
+				return err
+			}
+
+			defer lock.Close()
+		}
+	}
+
 	if len(args) >= 2 && args[0] == "config" && args[1] == "edit" {
 		if len(args) != 2 {
 			return fmt.Errorf("usage: devdeck config edit")
