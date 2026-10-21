@@ -4,7 +4,7 @@ set -euo pipefail
 
 if [[ ${1:-} == -h || ${1:-} == --help ]]; then
     echo 'Usage: ./install'
-    echo 'Build and install DevDeck in ~/.local/bin and create missing configuration.'
+    echo 'Build and install Dirhaven in ~/.local/bin and create missing configuration.'
     exit 0
 fi
 
@@ -22,17 +22,17 @@ fi
 
 project_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 bin_dir="$HOME/.local/bin"
-config_dir="$config_home/devdeck"
+config_dir="$config_home/dirhaven"
 config_file="$config_dir/config.toml"
 build_dir=$(mktemp -d)
 
 trap 'rm -rf -- "$build_dir"' EXIT
 
 cd -- "$project_dir"
-go build -o "$build_dir/devdeck" .
+go build -o "$build_dir/dirhaven" .
 
 mkdir -p -- "$bin_dir"
-install -m 755 -- "$build_dir/devdeck" "$bin_dir/devdeck"
+install -m 755 -- "$build_dir/dirhaven" "$bin_dir/dirhaven"
 
 mkdir -p -- "$config_dir"
 
@@ -41,7 +41,7 @@ if [[ ! -e $config_file && ! -L $config_file ]]; then
         umask 077
         set -o noclobber
         cat > "$config_file" <<'EOF'
-# Add project directories with: devdeck source add ~/src
+# Add project directories with: dirhaven source add ~/src
 sources = []
 
 [projects]
@@ -51,5 +51,5 @@ EOF
     echo "Created configuration: $config_file"
 fi
 
-echo "Installed DevDeck: $bin_dir/devdeck"
+echo "Installed Dirhaven: $bin_dir/dirhaven"
 echo "Make sure $bin_dir is on your PATH."

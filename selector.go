@@ -21,7 +21,7 @@ func selectProject(path string, c Config) error {
 		}
 
 		if len(list) == 0 {
-			fmt.Println("No projects found. Use devdeck source add <path> or devdeck project add <name> <path>.")
+			fmt.Println("No projects found. Use dirhaven source add <path> or dirhaven project add <name> <path>.")
 			return nil
 		}
 

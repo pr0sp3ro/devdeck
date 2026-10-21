@@ -188,7 +188,7 @@ func TestConfigReadWaitsForEditorLock(t *testing.T) {
 func TestConfigReadDoesNotCreateMissingConfiguration(t *testing.T) {
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	root := t.TempDir()
-	path := filepath.Join(root, "devdeck", "config.toml")
+	path := filepath.Join(root, "dirhaven", "config.toml")
 	c, err := readConfig(path)
 
 	if err != nil || len(c.Projects) != 0 {
@@ -250,8 +250,8 @@ func TestConfigLockIdentityBeforeAndAfterCreation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	path := filepath.Join(root, "devdeck", "config.toml")
-	before, err := configLockPath(filepath.Join(alias, "devdeck", "config.toml"))
+	path := filepath.Join(root, "dirhaven", "config.toml")
+	before, err := configLockPath(filepath.Join(alias, "dirhaven", "config.toml"))
 
 	if err != nil {
 		t.Fatal(err)

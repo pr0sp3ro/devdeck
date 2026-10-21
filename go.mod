@@ -1,4 +1,4 @@
-module github.com/pr0sp3ro/devdeck
+module github.com/pr0sp3ro/dirhaven
 
 go 1.22
 

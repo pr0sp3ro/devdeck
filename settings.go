@@ -197,7 +197,7 @@ func editConfig(path string, c Config) error {
 	}
 
 	// Shell syntax is allowed for the user-controlled editor command, never the filename.
-	cmd := exec.Command("sh", "-c", "exec "+editor+" \"$1\"", "devdeck-editor", path)
+	cmd := exec.Command("sh", "-c", "exec "+editor+" \"$1\"", "dirhaven-editor", path)
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 
 	if err := cmd.Run(); err != nil {

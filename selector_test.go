@@ -30,7 +30,7 @@ func TestPickerReloadsSettingsBeforeOpening(t *testing.T) {
 
 	// The picker fixture changes configuration while the selection is open.
 	if err := os.WriteFile(filepath.Join(root, "fzf"), []byte(`#!/bin/sh
-cat "$DEVDECK_TEST_UPDATED_CONFIG" > "$DEVDECK_TEST_CONFIG"
+cat "$DIRHAVEN_TEST_UPDATED_CONFIG" > "$DIRHAVEN_TEST_CONFIG"
 printf '%s\000' '' enter '0	project'
 `), 0700); err != nil {
 		t.Fatal(err)
@@ -46,7 +46,7 @@ case "$1" in
             printf '%s\n' /bin/sh
         fi
         ;;
-    respawn-window) printf '%s\n' "$@" > "$DEVDECK_TEST_ARGS" ;;
+    respawn-window) printf '%s\n' "$@" > "$DIRHAVEN_TEST_ARGS" ;;
 esac
 exit 0
 `), 0700); err != nil {
@@ -54,9 +54,9 @@ exit 0
 	}
 
 	t.Setenv("PATH", root+string(os.PathListSeparator)+os.Getenv("PATH"))
-	t.Setenv("DEVDECK_TEST_CONFIG", configFile)
-	t.Setenv("DEVDECK_TEST_UPDATED_CONFIG", updatedFile)
-	t.Setenv("DEVDECK_TEST_ARGS", argsFile)
+	t.Setenv("DIRHAVEN_TEST_CONFIG", configFile)
+	t.Setenv("DIRHAVEN_TEST_UPDATED_CONFIG", updatedFile)
+	t.Setenv("DIRHAVEN_TEST_ARGS", argsFile)
 
 	if err := selectProject(configFile, initial); err != nil {
 		t.Fatal(err)

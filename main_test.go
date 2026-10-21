@@ -59,7 +59,7 @@ func TestConfigEditRejectsDuplicateCanonicalPaths(t *testing.T) {
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	root := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", root)
-	t.Setenv("VISUAL", `sh -c 'cat "$DEVDECK_TEST_EDIT_CONTENT" > "$1"' devdeck-test`)
+	t.Setenv("VISUAL", `sh -c 'cat "$DIRHAVEN_TEST_EDIT_CONTENT" > "$1"' dirhaven-test`)
 	path, err := configPath()
 
 	if err != nil {
@@ -74,7 +74,7 @@ func TestConfigEditRejectsDuplicateCanonicalPaths(t *testing.T) {
 	}
 
 	content := filepath.Join(root, "edited.toml")
-	t.Setenv("DEVDECK_TEST_EDIT_CONTENT", content)
+	t.Setenv("DIRHAVEN_TEST_EDIT_CONTENT", content)
 
 	for _, duplicate := range []string{projectPath, alias} {
 		if err := saveConfig(path, Config{}); err != nil {
@@ -173,7 +173,7 @@ func TestConfigSetRejectsDuplicateProjectPaths(t *testing.T) {
 func TestConfigEditCanRepairInvalidConfiguration(t *testing.T) {
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
-	t.Setenv("VISUAL", `sh -c 'printf "sources = []\n" > "$1"' devdeck-test`)
+	t.Setenv("VISUAL", `sh -c 'printf "sources = []\n" > "$1"' dirhaven-test`)
 
 	path, err := configPath()
 
@@ -197,7 +197,7 @@ func TestConfigEditCanRepairInvalidConfiguration(t *testing.T) {
 		t.Fatalf("configuration was not repaired: %v", err)
 	}
 
-	t.Setenv("VISUAL", `sh -c 'printf "invalid = [" > "$1"' devdeck-test`)
+	t.Setenv("VISUAL", `sh -c 'printf "invalid = [" > "$1"' dirhaven-test`)
 
 	if err := run([]string{"config", "edit"}); err == nil {
 		t.Fatal("invalid configuration was accepted after editing")
@@ -210,7 +210,7 @@ func TestConfigEditPreservesSymlinkWithReplacingEditor(t *testing.T) {
 		t.Run(args[0], func(t *testing.T) {
 			root := t.TempDir()
 			t.Setenv("XDG_CONFIG_HOME", root)
-			t.Setenv("VISUAL", `sh -c 'printf "sources = []\n" > "$1.new" && mv "$1.new" "$1"' devdeck-test`)
+			t.Setenv("VISUAL", `sh -c 'printf "sources = []\n" > "$1.new" && mv "$1.new" "$1"' dirhaven-test`)
 
 			path, err := configPath()
 

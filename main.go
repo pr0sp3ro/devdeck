@@ -11,29 +11,29 @@ import (
 
 var version = "dev"
 
-const usage = `DevDeck - open projects in tmux
+const usage = `Dirhaven - open projects in tmux
 
 Usage:
-  devdeck
-  devdeck open <name|path>
-  devdeck list
-  devdeck source add|remove <path>
-  devdeck project add <name> <path>
-  devdeck project show|edit <name>
-  devdeck favorite add|remove <name|path>
-  devdeck config get [key]
-  devdeck config set <key> <value>
-  devdeck config edit
-  devdeck -h|--help
-  devdeck --version
+  dirhaven
+  dirhaven open <name|path>
+  dirhaven list
+  dirhaven source add|remove <path>
+  dirhaven project add <name> <path>
+  dirhaven project show|edit <name>
+  dirhaven favorite add|remove <name|path>
+  dirhaven config get [key]
+  dirhaven config set <key> <value>
+  dirhaven config edit
+  dirhaven -h|--help
+  dirhaven --version
 
 Selector: Enter opens, Ctrl-F toggles favorite, Esc cancels.
-Config: $XDG_CONFIG_HOME/devdeck/config.toml (default ~/.config/devdeck/config.toml).
+Config: $XDG_CONFIG_HOME/dirhaven/config.toml (default ~/.config/dirhaven/config.toml).
 `
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintln(os.Stderr, "devdeck:", err)
+		fmt.Fprintln(os.Stderr, "dirhaven:", err)
 		os.Exit(1)
 	}
 }
@@ -46,7 +46,7 @@ func run(args []string) error {
 			return nil
 
 		case "--version":
-			fmt.Println("devdeck", version)
+			fmt.Println("dirhaven", version)
 			return nil
 		}
 	}
@@ -84,7 +84,7 @@ func run(args []string) error {
 
 	if len(args) >= 2 && args[0] == "config" && args[1] == "edit" {
 		if len(args) != 2 {
-			return fmt.Errorf("usage: devdeck config edit")
+			return fmt.Errorf("usage: dirhaven config edit")
 		}
 
 		return editConfig(path, Config{})
@@ -109,7 +109,7 @@ func run(args []string) error {
 	switch args[0] {
 	case "open":
 		if len(args) != 2 {
-			return fmt.Errorf("usage: devdeck open <name|path>")
+			return fmt.Errorf("usage: dirhaven open <name|path>")
 		}
 
 		p, err := resolveProject(c, args[1])
@@ -122,7 +122,7 @@ func run(args []string) error {
 
 	case "list":
 		if len(args) != 1 {
-			return fmt.Errorf("usage: devdeck list")
+			return fmt.Errorf("usage: dirhaven list")
 		}
 
 		list, err := projects(c)
@@ -132,7 +132,7 @@ func run(args []string) error {
 		}
 
 		if len(list) == 0 {
-			fmt.Println("No projects found. Use devdeck source add <path> or devdeck project add <name> <path>.")
+			fmt.Println("No projects found. Use dirhaven source add <path> or dirhaven project add <name> <path>.")
 			return nil
 		}
 
@@ -150,7 +150,7 @@ func run(args []string) error {
 
 	case "source":
 		if len(args) != 3 || (args[1] != "add" && args[1] != "remove") {
-			return fmt.Errorf("usage: devdeck source add|remove <path>")
+			return fmt.Errorf("usage: dirhaven source add|remove <path>")
 		}
 
 		target, err := expandPath(args[2])
@@ -209,7 +209,7 @@ func run(args []string) error {
 
 	case "project":
 		if len(args) < 3 {
-			return fmt.Errorf("usage: devdeck project add <name> <path> | show|edit <name>")
+			return fmt.Errorf("usage: dirhaven project add <name> <path> | show|edit <name>")
 		}
 
 		name := args[2]
@@ -217,7 +217,7 @@ func run(args []string) error {
 		switch args[1] {
 		case "add":
 			if len(args) != 4 {
-				return fmt.Errorf("usage: devdeck project add <name> <path>")
+				return fmt.Errorf("usage: dirhaven project add <name> <path>")
 			}
 
 			if !validName.MatchString(name) {
@@ -239,7 +239,7 @@ func run(args []string) error {
 
 		case "show", "edit":
 			if len(args) != 3 {
-				return fmt.Errorf("usage: devdeck project show|edit <name>")
+				return fmt.Errorf("usage: dirhaven project show|edit <name>")
 			}
 
 			p, ok := c.Projects[name]
@@ -258,7 +258,7 @@ func run(args []string) error {
 
 	case "favorite":
 		if len(args) != 3 || (args[1] != "add" && args[1] != "remove") {
-			return fmt.Errorf("usage: devdeck favorite add|remove <name|path>")
+			return fmt.Errorf("usage: dirhaven favorite add|remove <name|path>")
 		}
 
 		// Allow removing a favorite even when its directory is no longer available.
@@ -286,7 +286,7 @@ func run(args []string) error {
 
 	case "config":
 		if len(args) < 2 {
-			return fmt.Errorf("usage: devdeck config get [key] | set <key> <value> | edit")
+			return fmt.Errorf("usage: dirhaven config get [key] | set <key> <value> | edit")
 		}
 
 		switch args[1] {
@@ -296,7 +296,7 @@ func run(args []string) error {
 			}
 
 			if len(args) != 3 {
-				return fmt.Errorf("usage: devdeck config get [key]")
+				return fmt.Errorf("usage: dirhaven config get [key]")
 			}
 
 			value, err := configValue(c, args[2])
@@ -320,7 +320,7 @@ func run(args []string) error {
 
 		case "set":
 			if len(args) != 4 {
-				return fmt.Errorf("usage: devdeck config set <key> <value>")
+				return fmt.Errorf("usage: dirhaven config set <key> <value>")
 			}
 
 			if err = setConfigValue(&c, args[2], args[3]); err != nil {

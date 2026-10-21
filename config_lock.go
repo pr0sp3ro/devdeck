@@ -59,7 +59,7 @@ func configLockPath(path string) (string, error) {
 	}
 
 	hash := sha256.Sum256([]byte(path))
-	return filepath.Join(state, "devdeck", "locks", fmt.Sprintf("%x.lock", hash)), nil
+	return filepath.Join(state, "dirhaven", "locks", fmt.Sprintf("%x.lock", hash)), nil
 }
 
 // Keep lock files in place so atomic config replacements share one lock.

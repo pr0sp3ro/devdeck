@@ -22,7 +22,7 @@ func TestResolveProjectAcceptsParentDirectory(t *testing.T) {
 }
 
 func TestConfigRoundTripAndInvalidInput(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "devdeck", "config.toml")
+	path := filepath.Join(t.TempDir(), "dirhaven", "config.toml")
 	c, err := loadConfig(path)
 
 	if err != nil || len(c.Projects) != 0 {

@@ -1,12 +1,12 @@
-# DevDeck
+# Dirhaven
 
 Open projects in tmux with a searchable project picker, favorites, and per-project startup windows.
 
-DevDeck discovers projects from directories you choose. Projects can also be registered individually, with their own window names, working directories, and commands. Existing tmux sessions are reused, so opening a project again preserves your work.
+Dirhaven discovers projects from directories you choose. Projects can also be registered individually, with their own window names, working directories, and commands. Existing tmux sessions are reused, so opening a project again preserves your work.
 
 ## Requirements
 
-- Go 1.22 or newer to build DevDeck.
+- Go 1.22 or newer to build Dirhaven.
 - `tmux` on `PATH`.
 - `fzf` on `PATH` for the interactive picker.
 - A Unix environment with a POSIX shell and `sleep`.
@@ -14,9 +14,9 @@ DevDeck discovers projects from directories you choose. Projects can also be reg
 ## Installation
 
 ```sh
-go build -o devdeck .
+go build -o dirhaven .
 mkdir -p ~/.local/bin
-install -m 755 devdeck ~/.local/bin/devdeck
+install -m 755 dirhaven ~/.local/bin/dirhaven
 ```
 
 Make sure `~/.local/bin` is on your `PATH`.
@@ -27,12 +27,12 @@ Optionally, use the Bash installer from the repository directory:
 ./install
 ```
 
-It builds and installs DevDeck in `~/.local/bin` and creates an empty configuration at `$XDG_CONFIG_HOME/devdeck/config.toml`, or `~/.config/devdeck/config.toml` by default. Missing configuration directories are created automatically. Existing configuration is preserved when the installer is run again.
+It builds and installs Dirhaven in `~/.local/bin` and creates an empty configuration at `$XDG_CONFIG_HOME/dirhaven/config.toml`, or `~/.config/dirhaven/config.toml` by default. Missing configuration directories are created automatically. Existing configuration is preserved when the installer is run again.
 
 Alternatively, install directly with Go:
 
 ```sh
-go install github.com/pr0sp3ro/devdeck@latest
+go install github.com/pr0sp3ro/dirhaven@latest
 ```
 
 Go installs the executable in `$GOBIN`, or `$(go env GOPATH)/bin` when `GOBIN` is unset. That directory must be on your `PATH`.
@@ -42,8 +42,8 @@ Go installs the executable in `$GOBIN`, or `$(go env GOPATH)/bin` when `GOBIN` i
 Add a directory containing projects:
 
 ```sh
-devdeck source add ~/src
-devdeck
+dirhaven source add ~/src
+dirhaven
 ```
 
 Every immediate subdirectory is a project, including directories without Git repositories. Discovery is not recursive. Symlinks to directories are followed and duplicate paths appear once.
@@ -51,37 +51,47 @@ Every immediate subdirectory is a project, including directories without Git rep
 Register an individual project and mark it as a favorite:
 
 ```sh
-devdeck project add devdeck ~/src/devdeck
-devdeck favorite add devdeck
-devdeck open devdeck
+dirhaven project add dirhaven ~/src/dirhaven
+dirhaven favorite add dirhaven
+dirhaven open dirhaven
 ```
 
 Open any directory directly, including one outside your configured sources:
 
 ```sh
-devdeck open .
-devdeck open ~/bin
+dirhaven open .
+dirhaven open ~/bin
 ```
+
+### Shell alias
+
+Add this to your shell configuration (`~/.zshrc` or `~/.bashrc`) to use `dh` as a shorter command:
+
+```sh
+alias dh='dirhaven'
+```
+
+Open a new shell or reload your shell configuration, then run `dh` or `dh open .`.
 
 ### Zsh shortcut
 
 Add this to `~/.zshrc` to open the project picker with `Ctrl-G`:
 
 ```zsh
-devdeck-picker() {
-    devdeck
+dirhaven-picker() {
+    dirhaven
     zle reset-prompt
 }
 
-zle -N devdeck-picker
-bindkey '^G' devdeck-picker
+zle -N dirhaven-picker
+bindkey '^G' dirhaven-picker
 ```
 
-Open a new shell or run `source ~/.zshrc` to activate the shortcut. Replace `^G` with your preferred key binding. DevDeck must be on your `PATH`.
+Open a new shell or run `source ~/.zshrc` to activate the shortcut. Replace `^G` with your preferred key binding. Dirhaven must be on your `PATH`.
 
 ## Project picker
 
-Run `devdeck` without arguments to open the fzf picker.
+Run `dirhaven` without arguments to open the fzf picker.
 
 | Key | Action |
 | --- | --- |
@@ -93,13 +103,13 @@ Run `devdeck` without arguments to open the fzf picker.
 
 Favorites appear first. `*` marks a favorite and `+` marks an existing tmux session. Paths are displayed to distinguish projects with the same name. The search query is retained after toggling a favorite.
 
-DevDeck supplies its own fzf options and ignores `FZF_DEFAULT_OPTS` and `FZF_DEFAULT_OPTS_FILE` to keep selection and keyboard bindings consistent.
+Dirhaven supplies its own fzf options and ignores `FZF_DEFAULT_OPTS` and `FZF_DEFAULT_OPTS_FILE` to keep selection and keyboard bindings consistent.
 
 ## Configuration
 
-The configuration file is `$XDG_CONFIG_HOME/devdeck/config.toml`, or `~/.config/devdeck/config.toml` by default. Use an absolute path for `XDG_CONFIG_HOME`.
+The configuration file is `$XDG_CONFIG_HOME/dirhaven/config.toml`, or `~/.config/dirhaven/config.toml` by default. Use an absolute path for `XDG_CONFIG_HOME`.
 
-Reading a missing configuration does not create a file. The optional `./install` script or the first configuration-changing command creates it. With no projects available, DevDeck prints instructions for adding a source or project.
+Reading a missing configuration does not create a file. The optional `./install` script or the first configuration-changing command creates it. With no projects available, Dirhaven prints instructions for adding a source or project.
 
 ```toml
 [[sources]]
@@ -118,8 +128,8 @@ windows = [
     { name = "terminal", command = "git status; exec zsh -i" },
 ]
 
-[projects.devdeck]
-path = "~/src/devdeck"
+[projects.dirhaven]
+path = "~/src/dirhaven"
 favorite = true
 windows = [
     { name = "editor", command = "nvim" },
@@ -128,7 +138,7 @@ windows = [
 ]
 ```
 
-Each `[projects.<name>]` section configures one project. Project identifiers accept ASCII letters, numbers, underscores, and hyphens. The identifier is used by commands such as `devdeck open example`.
+Each `[projects.<name>]` section configures one project. Project identifiers accept ASCII letters, numbers, underscores, and hyphens. The identifier is used by commands such as `dirhaven open example`.
 
 | Setting | Meaning |
 | --- | --- |
@@ -141,7 +151,7 @@ Each `[projects.<name>]` section configures one project. Project identifiers acc
 
 The number of windows comes from the list. An empty or omitted list opens one terminal window. Relative window directories are resolved against the project directory. All directories must exist when a new session is created. The example above opens the `config` window in `~/.config`, which must exist.
 
-Paths support `~` and `~/...`. Use absolute project and source paths in manually edited configuration. CLI commands save canonical absolute paths. Relative project or source paths in a manually edited file resolve against the directory from which DevDeck is invoked. Environment variables in path fields are not expanded.
+Paths support `~` and `~/...`. Use absolute project and source paths in manually edited configuration. CLI commands save canonical absolute paths. Relative project or source paths in a manually edited file resolve against the directory from which Dirhaven is invoked. Environment variables in path fields are not expanded.
 
 Window names accept only ASCII letters, digits, spaces, underscores, hyphens, and periods. Source, project, and window directory paths additionally allow `/` and `~`. Resolved symlink targets must follow the same path rules. Other characters, including semicolons, quotes, brackets, and control characters, are rejected. Discovered projects with unsupported paths are skipped. These restrictions do not apply to the shell syntax in `command`, so commands such as `git status; exec zsh -i` remain supported.
 
@@ -151,24 +161,24 @@ Unavailable sources and projects are skipped with warnings in the picker and pro
 
 ### Session behavior
 
-DevDeck names each session using the sanitized directory basename and the first 16 hexadecimal characters of its full-path SHA-256 hash. Paths are made absolute and symlinks are resolved first. Projects with identical directory names in different locations therefore get different sessions.
+Dirhaven names each session using the sanitized directory basename and the first 16 hexadecimal characters of its full-path SHA-256 hash. Paths are made absolute and symlinks are resolved first. Projects with identical directory names in different locations therefore get different sessions.
 
-When a session already exists, DevDeck attaches to it outside tmux or switches the current client inside tmux. It does not recreate windows or rerun commands. Configuration changes apply when the session is next created.
+When a session already exists, Dirhaven attaches to it outside tmux or switches the current client inside tmux. It does not recreate windows or rerun commands. Configuration changes apply when the session is next created.
 
 For new sessions, windows are created in configuration order and the first window is selected. Commands run as tmux startup commands, with shell syntax available for pipelines and redirection. Windows without a command use tmux's `default-command`, or its `default-shell` as a login shell when no default command is set.
 
 Windows remain visible after their command or shell exits, preserving output and the exit status. Close them using tmux's normal window controls, or restart their process using `respawn-window -k` from the tmux command prompt.
 
-All working directories are checked before creation. If window setup fails, DevDeck attempts to remove only the session created by that invocation. Commands that started before a later failure may already have had effects outside tmux.
+All working directories are checked before creation. If window setup fails, Dirhaven attempts to remove only the session created by that invocation. Commands that started before a later failure may already have had effects outside tmux.
 
 ### Editing settings
 
 ```sh
-devdeck config get
-devdeck config get projects.example.path
-devdeck config set projects.example.favorite true
-devdeck config set projects.example.windows.0.command 'nvim .'
-devdeck config set sources.0.path /srv/http
+dirhaven config get
+dirhaven config get projects.example.path
+dirhaven config set projects.example.favorite true
+dirhaven config set projects.example.windows.0.command 'nvim .'
+dirhaven config set sources.0.path /srv/http
 ```
 
 Window indexes and source indexes are zero-based. String values are passed as ordinary shell arguments, without TOML quotes. Boolean values use `true` or `false`.
@@ -176,7 +186,7 @@ Window indexes and source indexes are zero-based. String values are passed as or
 Replace the complete window list using a TOML array:
 
 ```sh
-devdeck config set projects.example.windows '[{ name = "editor", command = "nvim" }, { name = "terminal" }]'
+dirhaven config set projects.example.windows '[{ name = "editor", command = "nvim" }, { name = "terminal" }]'
 ```
 
 `config set` updates configured projects or existing source entries. Add a project with `project add` before setting its fields. Supported keys are `sources.<index>.path`, `projects.<name>.path`, `projects.<name>.favorite`, `projects.<name>.windows`, and `projects.<name>.windows.<index>.name|command|directory`.
@@ -184,40 +194,40 @@ devdeck config set projects.example.windows '[{ name = "editor", command = "nvim
 Open the configuration in your editor:
 
 ```sh
-devdeck config edit
-devdeck project edit example
+dirhaven config edit
+dirhaven project edit example
 ```
 
 `project edit` checks that the project is configured and prints the relevant section before opening the complete file. The editor is selected from `$VISUAL`, then `$EDITOR`, then `vi`. Editor commands may include arguments. Configuration is validated after the editor exits. Invalid edits remain available for manual correction.
 
-Configuration-changing CLI commands validate the current file before writing. Writes use an atomic replacement and may reformat TOML and remove comments. Unknown fields and invalid configuration cause an error without overwriting the file. Use `devdeck config edit` to open and repair invalid configuration. This command validates the file after the editor exits.
+Configuration-changing CLI commands validate the current file before writing. Writes use an atomic replacement and may reformat TOML and remove comments. Unknown fields and invalid configuration cause an error without overwriting the file. Use `dirhaven config edit` to open and repair invalid configuration. This command validates the file after the editor exits.
 
-DevDeck serializes configuration changes using lock files in `$XDG_STATE_HOME/devdeck/locks`, defaulting to `~/.local/state/devdeck/locks`. `XDG_STATE_HOME` must be an absolute path. Each lock filename is a SHA-256 hash of the canonical configuration path, so symlinks to the same file share a lock. Reading configuration does not require write access to its directory, but the state directory must be writable. Parallel commands wait for the current update to finish before reading and changing settings. Read-only commands and the picker use shared locks while loading configuration, so they also wait until an editor launched by DevDeck exits. `Ctrl-F` locks only while updating a favorite. `config edit` and `project edit` hold the lock until the editor exits. The lock file remains on disk, but the lock is released automatically when the process exits. Editors launched directly outside DevDeck do not participate in locking. When upgrading from a version that stores `config.toml.lock` beside the configuration, close its running configuration commands and editors before using the new version, because the lock locations differ.
+Dirhaven serializes configuration changes using lock files in `$XDG_STATE_HOME/dirhaven/locks`, defaulting to `~/.local/state/dirhaven/locks`. `XDG_STATE_HOME` must be an absolute path. Each lock filename is a SHA-256 hash of the canonical configuration path, so symlinks to the same file share a lock. Reading configuration does not require write access to its directory, but the state directory must be writable. Parallel commands wait for the current update to finish before reading and changing settings. Read-only commands and the picker use shared locks while loading configuration, so they also wait until an editor launched by Dirhaven exits. `Ctrl-F` locks only while updating a favorite. `config edit` and `project edit` hold the lock until the editor exits. The lock file remains on disk, but the lock is released automatically when the process exits. Editors launched directly outside Dirhaven do not participate in locking. When upgrading from a version that stores `config.toml.lock` beside the configuration, close its running configuration commands and editors before using the new version, because the lock locations differ.
 
 ## Command reference
 
 ```text
-devdeck
-devdeck open <name|path>
-devdeck list
+dirhaven
+dirhaven open <name|path>
+dirhaven list
 
-devdeck source add <path>
-devdeck source remove <path>
+dirhaven source add <path>
+dirhaven source remove <path>
 
-devdeck project add <name> <path>
-devdeck project show <name>
-devdeck project edit <name>
+dirhaven project add <name> <path>
+dirhaven project show <name>
+dirhaven project edit <name>
 
-devdeck favorite add <name|path>
-devdeck favorite remove <name|path>
+dirhaven favorite add <name|path>
+dirhaven favorite remove <name|path>
 
-devdeck config get [key]
-devdeck config set <key> <value>
-devdeck config edit
+dirhaven config get [key]
+dirhaven config set <key> <value>
+dirhaven config edit
 
-devdeck -h
-devdeck --help
-devdeck --version
+dirhaven -h
+dirhaven --help
+dirhaven --version
 ```
 
 `list` prints project names and paths, with favorites first. `project show` prints the saved configuration for one project.
@@ -227,7 +237,7 @@ Adding a discovered project to favorites registers its path in the configuration
 Remove a source without removing its projects or tmux sessions:
 
 ```sh
-devdeck source remove ~/src
+dirhaven source remove ~/src
 ```
 
 Explicit project configurations remain available after a source is removed. To remove an explicit project, delete its section from the configuration.
@@ -244,4 +254,4 @@ To check interactive behavior, open a project outside tmux and then from a tmux 
 
 ## License
 
-DevDeck is available under the [MIT License](LICENSE).
+Dirhaven is available under the [MIT License](LICENSE).

@@ -55,7 +55,7 @@ func configPath() (string, error) {
 		return "", fmt.Errorf("XDG_CONFIG_HOME must be an absolute path")
 	}
 
-	return filepath.Join(dir, "devdeck", "config.toml"), nil
+	return filepath.Join(dir, "dirhaven", "config.toml"), nil
 }
 
 func loadConfig(path string) (Config, error) {
